@@ -1,0 +1,19 @@
+h1 {
+    color: blue;
+}
+
+.gameBoard {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    height: 600px;
+    width: 600px;
+    gap: 3px;
+}
+
+.gameSquare {
+    background-color: gray;
+}
+
+.gameSquare:hover {
+    background-color: rgb(196, 196, 196);
+}
