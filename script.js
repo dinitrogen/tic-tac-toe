@@ -1,13 +1,12 @@
 
 // Game Board Module
 const gameBoard = (function() {
-    const gameSquares = ["","","","","","","","",""];
+    let gameSquares = ["","","","","","","","",""];
     const setSquare = function(squareIndex, playerSymbol) {
         if (gameSquares[squareIndex] !== "") {
             return;
         } else {
             gameSquares[squareIndex] = playerSymbol;
-            console.log(gameSquares); // Delete later
         }
     }
 
@@ -15,15 +14,24 @@ const gameBoard = (function() {
         return gameSquares[squareIndex];
     }
 
+    const resetSquares = function() {
+        gameSquares = ["","","","","","","","",""];
+        return gameSquares;
+    }
+
     return {
         setSquare,
         getSquare,
+        resetSquares,
     }
 })();
 
 // Display controller module. Updates display each move and checks for win.
 const displayController = (function() {
+    const gameOutcome = document.querySelector('#gameOutcome');
     const gameSquareDivs = document.querySelectorAll('.gameSquare');
+    const replayButton = document.querySelector('#replayButton');
+    let playerXturn = true;
     
     const updateDisplay = function() {
         for (let i = 0; i < gameSquareDivs.length; i++) {
@@ -72,16 +80,37 @@ const displayController = (function() {
             }
         }    
         if (winnerIsX) {
-            console.log('X wins');
+            gameOutcome.textContent = 'X wins!';
+            displayController.endRound();           
         } else if (winnerIsO) {
-            console.log('O wins');
+            gameOutcome.textContent = 'O wins!';
+            displayController.endRound();
         } else if (indexMapX.length + indexMapO.length === 9) {
-            console.log('Tie');
+            gameOutcome.textContent = 'Tie!';
+            displayController.endRound();
         } else {    
             return;
         }
         
     };
+
+    const endRound = function() {
+        for (let i = 0; i < gameSquareDivs.length; i++) {
+            document.getElementById(i).style.pointerEvents = 'none';
+        }
+        document.getElementById('replayDiv').style.display = 'block';
+    };
+
+    replayButton.addEventListener('click', function() {
+        gameBoard.resetSquares();
+        displayController.updateDisplay();
+        gameOutcome.textContent = "";
+        playerXturn = true;
+        for (let i = 0; i < gameSquareDivs.length; i++) {
+            document.getElementById(i).style.pointerEvents = 'auto';
+        }
+        document.getElementById('replayDiv').style.display = 'none';
+    });
 
     gameSquareDivs.forEach(function(e) {
         e.addEventListener('click', function() {
@@ -100,12 +129,12 @@ const displayController = (function() {
     return {
         updateDisplay, // Remove from returned functions later
         checkForWin,
+        endRound,
     }
 })();
 
 
 
-let playerXturn = true; // remove this from global scope eventually
 
 
 

@@ -12,8 +12,13 @@ h1 {
 
 .gameSquare {
     background-color: gray;
+    pointer-events: auto;
 }
 
 .gameSquare:hover {
     background-color: rgb(196, 196, 196);
+}
+
+#replayDiv {
+    display: none;
 }
