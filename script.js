@@ -1,3 +1,5 @@
+
+// Game Board Module
 const gameBoard = (function() {
     const gameSquares = ["","","","","","","","",""];
     const setSquare = function(squareIndex, playerSymbol) {
@@ -19,7 +21,7 @@ const gameBoard = (function() {
     }
 })();
 
-
+// Display controller module. Updates display each move and checks for win.
 const displayController = (function() {
     const gameSquareDivs = document.querySelectorAll('.gameSquare');
     
@@ -42,34 +44,43 @@ const displayController = (function() {
         }
 
        
-        // let winConditions = [
-        //     [0, 1, 2],
-        //     [3, 4, 5],
-        //     [6, 7, 8],
-        //     [0, 3, 6],
-        //     [1, 4, 7],
-        //     [2, 5, 8],
-        //     [0, 4, 8],
-        //     [2, 4, 6]
-        // ];
+        let winConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
         
-        let winCondition = [0, 1, 2] // Example with a single win condition
-    
-        let winnerIsX = winCondition.every(function(el) {
-            return indexMapX.indexOf(el) !== -1;
-        });
-
-        let winnerIsO = winCondition.every(function(el) {
-            return indexMapO.indexOf(el) !== -1;
-        });
-        
+       // let winCondition = [0, 1, 2] // Example with a single win condition
+       let winnerIsX = false;
+       let winnerIsO = false;
+       
+       for (let i = 0; i < winConditions.length; i++) {
+            if (winnerIsX || winnerIsO) {
+                break;
+            } else {
+                winnerIsX = winConditions[i].every(function(el) {
+                    return indexMapX.indexOf(el) !== -1;
+                });
+                winnerIsO = winConditions[i].every(function(el) {
+                    return indexMapO.indexOf(el) !== -1;
+                });
+            }
+        }    
         if (winnerIsX) {
             console.log('X wins');
         } else if (winnerIsO) {
             console.log('O wins');
-        } else {
+        } else if (indexMapX.length + indexMapO.length === 9) {
+            console.log('Tie');
+        } else {    
             return;
         }
+        
     };
 
     gameSquareDivs.forEach(function(e) {
@@ -86,13 +97,13 @@ const displayController = (function() {
         });
     });
 
-    
-
     return {
         updateDisplay, // Remove from returned functions later
         checkForWin,
     }
 })();
+
+
 
 let playerXturn = true; // remove this from global scope eventually
 
