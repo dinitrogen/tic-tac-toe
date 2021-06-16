@@ -133,7 +133,30 @@ const displayController = (function() {
     }
 })();
 
+const createPlayer = function(name) {
+    this.name = name;
+    this.numWins = 0;
 
+    const winRound = () => {
+        this.numWins++;
+    };
+
+    const getNumWins = () => {
+        return this.numWins;
+    };
+
+    const getName = () => {
+        return this.name;
+    };
+
+    return {
+        getName, getNumWins, winRound
+    };
+};
+
+const player1 = createPlayer('Player 1');
+console.log(player1.getNumWins);
+console.log(player1.getName);
 
 
 
