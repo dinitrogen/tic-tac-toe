@@ -13,9 +13,9 @@
 
     <div class="gameLayout">
         
-        <div class="playerCard">
-            <div id="player1NameDiv">Player 1</div>
-            <div id="player1WinsDiv">Wins: 0</div>
+        <div class="playerCard" id="playerCardX">
+            <div id="player1NameDiv">Player 1:</div>
+            <div id="player1WinsDiv">0</div>
         </div>
 
         <div class="gameBoard">
@@ -30,21 +30,25 @@
             <div class="gameSquare" id="8"></div>
         </div>
 
-        <div class="playerCard">
-            <div id="player2NameDiv">Player 2</div>
-            <div id="player2WinsDiv">Wins: 0</div>
+        <div class="playerCard" id="playerCardO">
+            <div id="player2NameDiv">Player 2:</div>
+            <div id="player2WinsDiv">0</div>
         </div>
     </div>
 
 
-    <hr>
-    <div id="gameOutcome"></div>
     
-    <br>
-    
-    <div id="replayDiv">
-        <button id='replayButton'>Play again?</button>
-    </div>
+        <div id="endGameOverlay">
 
+            <div id="gameOutcome"></div>
+        
+            <div id="replayDiv">
+                <button id='replayButton'>Play again?</button>
+            </div>
+        
+        </div>
+    
+
+    
     <script src="script.js"></script>
 </body>

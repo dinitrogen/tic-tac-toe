@@ -28,6 +28,7 @@ const gameBoard = (function() {
 
 // Display controller module. Updates display each move and checks for win.
 const displayController = (function() {
+    const endGameOverlay = document.querySelector('#endGameOverlay');
     const gameOutcome = document.querySelector('#gameOutcome');
     const gameSquareDivs = document.querySelectorAll('.gameSquare');
     const newGameButton = document.querySelector('#newGameButton');
@@ -44,6 +45,8 @@ const displayController = (function() {
         for (let i = 0; i < gameSquareDivs.length; i++) {
             gameSquareDivs[i].textContent = gameBoard.getSquare(i);
         }
+        player1WinsDiv.textContent = `${player1.getNumWins()}`;
+        player2WinsDiv.textContent = `${player2.getNumWins()}`;
     }
     
     const checkForWin = function() {
@@ -87,14 +90,14 @@ const displayController = (function() {
             }
         }    
         if (winnerIsX) {
-            gameOutcome.textContent = 'X wins!';
+            gameOutcome.textContent = `${player1.getName()} wins!`;
             player1.winRound();
-            player1WinsDiv.textContent = `Wins: ${player1.getNumWins()}`;
+            player1WinsDiv.textContent = `${player1.getNumWins()}`;
             displayController.endRound();           
         } else if (winnerIsO) {
-            gameOutcome.textContent = 'O wins!';
+            gameOutcome.textContent = `${player2.getName()} wins!`;
             player2.winRound();
-            player2WinsDiv.textContent = `Wins: ${player2.getNumWins()}`;
+            player2WinsDiv.textContent = `${player2.getNumWins()}`;
             displayController.endRound();
         } else if (indexMapX.length + indexMapO.length === 9) {
             gameOutcome.textContent = 'Tie!';
@@ -108,7 +111,7 @@ const displayController = (function() {
         for (let i = 0; i < gameSquareDivs.length; i++) {
             document.getElementById(i).style.pointerEvents = 'none';
         }
-        document.getElementById('replayDiv').style.display = 'block';
+        document.getElementById('endGameOverlay').style.display = 'block';
     }
 
     replayButton.addEventListener('click', function() {
@@ -116,10 +119,12 @@ const displayController = (function() {
         displayController.updateDisplay();
         gameOutcome.textContent = "";
         playerXturn = true;
+        document.getElementById('playerCardO').style.backgroundColor = 'white';
+                document.getElementById('playerCardX').style.backgroundColor = 'rgb(196,196,196)';
         for (let i = 0; i < gameSquareDivs.length; i++) {
             document.getElementById(i).style.pointerEvents = 'auto';
         }
-        document.getElementById('replayDiv').style.display = 'none';
+        document.getElementById('endGameOverlay').style.display = 'none';
     });
 
     newGameButton.addEventListener('click', function() {
@@ -127,12 +132,17 @@ const displayController = (function() {
         let player2Name = prompt('Player 2 name?', 'Player 2');
         player1 = createPlayer(player1Name);
         player2 = createPlayer(player2Name);
-        player1NameDiv.textContent = player1.getName();
-        player2NameDiv.textContent = player2.getName();
-        
+        player1NameDiv.textContent = `${player1.getName()}:`;
+        player2NameDiv.textContent = `${player2.getName()}:`;
+        gameBoard.resetSquares();
+        displayController.updateDisplay();
+        playerXturn = true;
+        document.getElementById('playerCardO').style.backgroundColor = 'white';
+                document.getElementById('playerCardX').style.backgroundColor = 'rgb(196,196,196)';      
         for (let i = 0; i < gameSquareDivs.length; i++) {
             document.getElementById(i).style.pointerEvents = 'auto';
         }    
+        document.getElementById('endGameOverlay').style.display = 'none';
     });
 
     gameSquareDivs.forEach(function(e) {
@@ -140,9 +150,13 @@ const displayController = (function() {
             if (playerXturn) {
                 gameBoard.setSquare(e.id,"X");
                 playerXturn = false;
+                document.getElementById('playerCardO').style.backgroundColor = 'rgb(196,196,196)';
+                document.getElementById('playerCardX').style.backgroundColor = 'white';
             } else {
                 gameBoard.setSquare(e.id,"O");
                 playerXturn = true;
+                document.getElementById('playerCardO').style.backgroundColor = 'white';
+                document.getElementById('playerCardX').style.backgroundColor = 'rgb(196,196,196)';
             }
             displayController.updateDisplay();
             displayController.checkForWin();
