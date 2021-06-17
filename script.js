@@ -30,14 +30,21 @@ const gameBoard = (function() {
 const displayController = (function() {
     const gameOutcome = document.querySelector('#gameOutcome');
     const gameSquareDivs = document.querySelectorAll('.gameSquare');
+    const newGameButton = document.querySelector('#newGameButton');
     const replayButton = document.querySelector('#replayButton');
+    const player1NameDiv = document.querySelector('#player1NameDiv');
+    const player2NameDiv = document.querySelector('#player2NameDiv');
+    const player1WinsDiv = document.querySelector('#player1WinsDiv');
+    const player2WinsDiv = document.querySelector('#player2WinsDiv');
     let playerXturn = true;
+    let player1;
+    let player2;
     
     const updateDisplay = function() {
         for (let i = 0; i < gameSquareDivs.length; i++) {
             gameSquareDivs[i].textContent = gameBoard.getSquare(i);
         }
-    };
+    }
     
     const checkForWin = function() {
         let indexMapX = [];
@@ -81,25 +88,28 @@ const displayController = (function() {
         }    
         if (winnerIsX) {
             gameOutcome.textContent = 'X wins!';
+            player1.winRound();
+            player1WinsDiv.textContent = `Wins: ${player1.getNumWins()}`;
             displayController.endRound();           
         } else if (winnerIsO) {
             gameOutcome.textContent = 'O wins!';
+            player2.winRound();
+            player2WinsDiv.textContent = `Wins: ${player2.getNumWins()}`;
             displayController.endRound();
         } else if (indexMapX.length + indexMapO.length === 9) {
             gameOutcome.textContent = 'Tie!';
             displayController.endRound();
         } else {    
             return;
-        }
-        
-    };
+        } 
+    }
 
     const endRound = function() {
         for (let i = 0; i < gameSquareDivs.length; i++) {
             document.getElementById(i).style.pointerEvents = 'none';
         }
         document.getElementById('replayDiv').style.display = 'block';
-    };
+    }
 
     replayButton.addEventListener('click', function() {
         gameBoard.resetSquares();
@@ -110,6 +120,19 @@ const displayController = (function() {
             document.getElementById(i).style.pointerEvents = 'auto';
         }
         document.getElementById('replayDiv').style.display = 'none';
+    });
+
+    newGameButton.addEventListener('click', function() {
+        let player1Name = prompt('Player 1 name?', 'Player 1');
+        let player2Name = prompt('Player 2 name?', 'Player 2');
+        player1 = createPlayer(player1Name);
+        player2 = createPlayer(player2Name);
+        player1NameDiv.textContent = player1.getName();
+        player2NameDiv.textContent = player2.getName();
+        
+        for (let i = 0; i < gameSquareDivs.length; i++) {
+            document.getElementById(i).style.pointerEvents = 'auto';
+        }    
     });
 
     gameSquareDivs.forEach(function(e) {
@@ -127,36 +150,31 @@ const displayController = (function() {
     });
 
     return {
-        updateDisplay, // Remove from returned functions later
+        updateDisplay,
         checkForWin,
         endRound,
     }
 })();
 
+
+// Factory function to create players
 const createPlayer = function(name) {
-    this.name = name;
-    this.numWins = 0;
+    let numWins = 0; // declaring with "let" is important to link numWins to each instance
 
     const winRound = () => {
-        this.numWins++;
-    };
+        numWins++;
+    }
 
-    const getNumWins = () => {
-        return this.numWins;
-    };
+    const getNumWins = () => numWins;
 
-    const getName = () => {
-        return this.name;
-    };
+    const getName = () => name;
 
     return {
         getName, getNumWins, winRound
-    };
-};
+    }
+}
 
-const player1 = createPlayer('Player 1');
-console.log(player1.getNumWins);
-console.log(player1.getName);
+
 
 
 

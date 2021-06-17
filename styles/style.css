@@ -1,5 +1,26 @@
 h1 {
     color: blue;
+    text-align: center;
+}
+
+.newGameDiv {
+      text-align: center;
+      margin: 5px;
+}
+
+.gameLayout {
+    display: flex;
+    justify-content: space-between;
+}
+
+.playerCard {
+    color: blue;
+    text-align: center;
+    flex-grow: 1;
+    border: solid black 2px;
+    margin: 5px;
+    padding: 5px;
+
 }
 
 .gameBoard {
@@ -12,7 +33,7 @@ h1 {
 
 .gameSquare {
     background-color: gray;
-    pointer-events: auto;
+    pointer-events: none;
 }
 
 .gameSquare:hover {
