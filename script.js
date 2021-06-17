@@ -236,6 +236,99 @@ const createPlayer = function(name) {
 
 
 
+// Minimax algorithm - IN PROGRESS
+
+const getMinimaxScore = function(squares) {
+    let indexMapX = [];
+    let indexMapO = [];
+    for (let i = 0; i < squares.length; i++) {
+        if (squares[i] === "X") {
+            indexMapX.push(i);
+        } else if (squares[i] === "O") {
+            indexMapO.push(i);
+        }
+        else continue;
+    }
+
+   
+    let winConditions = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
+    
+   let winnerIsX = false;
+   let winnerIsO = false;
+   
+   for (let i = 0; i < winConditions.length; i++) {
+        if (winnerIsX || winnerIsO) {
+            break;
+        } else {
+            winnerIsX = winConditions[i].every(function(el) {
+                return indexMapX.indexOf(el) !== -1;
+            });
+            winnerIsO = winConditions[i].every(function(el) {
+                return indexMapO.indexOf(el) !== -1;
+            });
+        }
+    }
+    
+    if (winnerIsX) {
+        return 10;
+    } else if (winnerIsO) {
+        return -10;
+    } else {
+        return 0;
+    }
+}  
+
+const getPossibleMoves = function(squares) {
+    let possibleMovesMap = [];
+    for (let i = 0; i < squares.length; i++) {
+        if (squares[i] === "") {
+            possibleMovesMap.push(i);
+        } else continue;
+    }
+    return possibleMovesMap;
+}
+
+const getPossibleMoveScore = function(squares, moveIndex) {
+    let playerXturn = true; //adjust later
+    if (playerXturn) {
+        squares[moveIndex] = "X";
+        let score = getMinimaxScore(squares);
+        squares[moveIndex] = "";
+        return score;
+    } else {
+        squares[moveIndex] = "O";
+        let score = getMinimaxScore(squares);
+        squares[moveIndex] = "";
+        return score;
+    }
+}
+
+const populateScores = function(squares) {
+    let moves = getPossibleMoves(squares);
+    console.log(moves);
+    let scores = [];
+    for (let i = 0; i < moves.length; i++) {
+        let score = getPossibleMoveScore(squares, moves[i]);
+        scores.push(score);
+    }
+    return scores;
+}
 
 
 
+// Algorithm testing
+// let ex = ["X","","X","O","O","X","","",""];
+// console.log(getMinimaxScore(ex));
+// console.log(getPossibleMoves(ex));
+// console.log(getPossibleMoveScore(ex, 1));
+// console.log(ex);
+// console.log(populateScores(ex));
