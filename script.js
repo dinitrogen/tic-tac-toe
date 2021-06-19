@@ -47,6 +47,8 @@ const displayController = (function() {
     let player1;
     let player2;
     let vsComputerMode = false;
+    let gameOver = false;
+    let difficultyLevel = '1';
     
     const updateDisplay = function() {
         for (let i = 0; i < gameSquareDivs.length; i++) {
@@ -84,12 +86,14 @@ const displayController = (function() {
        let winnerIsX = false;
        let winnerIsO = false;
        
+
+ 
        for (let i = 0; i < winConditions.length; i++) {
             if (winnerIsX || winnerIsO) {
                 break;
             } else {
                 winnerIsX = winConditions[i].every(function(el) {
-                    return indexMapX.indexOf(el) !== -1;
+                    return indexMapX.indexOf(el) !== -1;             
                 });
                 winnerIsO = winConditions[i].every(function(el) {
                     return indexMapO.indexOf(el) !== -1;
@@ -100,15 +104,18 @@ const displayController = (function() {
             gameOutcome.textContent = `${player1.getName()} wins!`;
             player1.winRound();
             player1WinsDiv.textContent = `${player1.getNumWins()}`;
-            displayController.endRound();           
+            displayController.endRound();
+            gameOver = true;        
         } else if (winnerIsO) {
             gameOutcome.textContent = `${player2.getName()} wins!`;
             player2.winRound();
             player2WinsDiv.textContent = `${player2.getNumWins()}`;
             displayController.endRound();
+            gameOver = true;
         } else if (indexMapX.length + indexMapO.length === 9) {
             gameOutcome.textContent = 'Tie!';
             displayController.endRound();
+            gameOver = true;
         } else {    
             return;
         } 
@@ -122,6 +129,7 @@ const displayController = (function() {
     }
 
     replayButton.addEventListener('click', function() {
+        gameOver = false;
         gameBoard.resetSquares();
         displayController.updateDisplay();
         gameOutcome.textContent = "";
@@ -135,6 +143,7 @@ const displayController = (function() {
     });
 
     newGameButton.addEventListener('click', function() {
+        gameOver = false;
         let player1Name = prompt('Player 1 name?', 'Player 1');
         let player2Name = prompt('Player 2 name?', 'Player 2');
         player1 = createPlayer(player1Name);
@@ -154,12 +163,25 @@ const displayController = (function() {
     });
 
     newAIGameButton.addEventListener('click', function() {
+        gameOver = false;
         let player1Name = prompt('Player 1 name?', 'Player 1');
         let player2Name = 'Computer';
+        difficultyLevel = prompt('Enter difficulty (1 = easy, 2 = medium, 3 = impossible!)', 1);
+        if (difficultyLevel !== '1' && difficultyLevel !== '2' && difficultyLevel !== '3') {
+            difficultyLevel = '1';
+        }
+        let difficultyText;
+        if (difficultyLevel === '1') {
+            difficultyText = 'Easy';    
+        } else if (difficultyLevel === '2') {
+            difficultyText = 'Medium';
+        } else {
+            difficultyText = 'Impossible';
+        }
         player1 = createPlayer(player1Name);
         player2 = createPlayer(player2Name);
         player1NameDiv.textContent = `${player1.getName()}:`;
-        player2NameDiv.textContent = `${player2.getName()}:`;
+        player2NameDiv.textContent = `${difficultyText} ${player2.getName()}:`;
         gameBoard.resetSquares();
         displayController.updateDisplay();
         vsComputerMode = true;
@@ -179,20 +201,28 @@ const displayController = (function() {
                 playerXturn = false;
                 document.getElementById('playerCardO').style.backgroundColor = 'rgb(196,196,196)';
                 document.getElementById('playerCardX').style.backgroundColor = 'white';
-                if (vsComputerMode === true) {
-                    displayController.aiMove();
+                displayController.updateDisplay();
+                displayController.checkForWin();
+                if (vsComputerMode === true && !gameOver) {
+                    if (difficultyLevel === '1') {
+                        displayController.aiMove();
+                    } else {
+                    displayController.smartAIMove();
+                    }
                     playerXturn = true;
                     document.getElementById('playerCardO').style.backgroundColor = 'white';
                     document.getElementById('playerCardX').style.backgroundColor = 'rgb(196,196,196)';
+                    displayController.updateDisplay();
+                    displayController.checkForWin();
                 }
             } else {
                 gameBoard.setSquare(e.id,"O");
                 playerXturn = true;
                 document.getElementById('playerCardO').style.backgroundColor = 'white';
                 document.getElementById('playerCardX').style.backgroundColor = 'rgb(196,196,196)';
+                displayController.updateDisplay();
+                displayController.checkForWin();
             }
-            displayController.updateDisplay();
-            displayController.checkForWin();
             
         });
     });
@@ -208,11 +238,32 @@ const displayController = (function() {
         }
     }
 
+    const smartAIMove = function() {
+        let indexedBoard = [];
+        let playerO = "O";
+        for (let i = 0; i < 9; i++) {
+            if (gameBoard.getSquare(i) === "") {
+                indexedBoard[i] = i;
+            } else {
+                indexedBoard[i] = gameBoard.getSquare(i);
+            }
+        }
+        let smartAIMove;
+        if (difficultyLevel === '2') {
+            mediumAI.resetDepthCounter();
+            smartAIMove = mediumAI.getBestMove(indexedBoard, playerO);
+        } else if (difficultyLevel === '3') {
+            smartAIMove = impossibleAI.getBestMove(indexedBoard, playerO);
+        }
+        gameBoard.setSquare(smartAIMove.index, "O");
+    }
+
     return {
         updateDisplay,
         checkForWin,
         endRound,
         aiMove,
+        smartAIMove
     }
 })();
 
@@ -234,101 +285,221 @@ const createPlayer = function(name) {
     }
 }
 
+// Minimax algorithm for AI
 
+const impossibleAI = (function() {
 
-// Minimax algorithm - IN PROGRESS
+    const playerO = "O";
+    const playerX = "X";
 
-const getMinimaxScore = function(squares) {
-    let indexMapX = [];
-    let indexMapO = [];
-    for (let i = 0; i < squares.length; i++) {
-        if (squares[i] === "X") {
-            indexMapX.push(i);
-        } else if (squares[i] === "O") {
-            indexMapO.push(i);
-        }
-        else continue;
+    const getPossibleSpots = function(boardState) {
+        return boardState.filter(s => s != "O" && s != "X");
     }
 
-   
-    let winConditions = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6]
-    ];
-    
-   let winnerIsX = false;
-   let winnerIsO = false;
-   
-   for (let i = 0; i < winConditions.length; i++) {
-        if (winnerIsX || winnerIsO) {
-            break;
+    const isWinner = function(boardState, player) {
+        if (
+            (boardState[0] == player && boardState[1] == player && boardState[2] == player) ||
+            (boardState[3] == player && boardState[4] == player && boardState[5] == player) ||
+            (boardState[6] == player && boardState[7] == player && boardState[8] == player) ||
+            (boardState[0] == player && boardState[3] == player && boardState[6] == player) ||
+            (boardState[1] == player && boardState[4] == player && boardState[7] == player) ||
+            (boardState[2] == player && boardState[5] == player && boardState[8] == player) ||
+            (boardState[0] == player && boardState[4] == player && boardState[8] == player) ||
+            (boardState[2] == player && boardState[4] == player && boardState[6] == player)
+            ) {
+            return true;
         } else {
-            winnerIsX = winConditions[i].every(function(el) {
-                return indexMapX.indexOf(el) !== -1;
-            });
-            winnerIsO = winConditions[i].every(function(el) {
-                return indexMapO.indexOf(el) !== -1;
-            });
+            return false;
         }
     }
+
+
+    const getBestMove = function(boardState, player) {
+
+        let possibleSpots = getPossibleSpots(boardState);
+
+        if (isWinner(boardState, playerO)) {
+            return {score: -10};
+        }
+        else if (isWinner(boardState, playerX)) {
+            return {score: 10};
+        } else if (possibleSpots.length === 0) {
+            return {score: 0};
+        }
+
+        let moves = [];
+
+        for (let i = 0; i < possibleSpots.length; i++) {
+            let move = {};
+            move.index = boardState[possibleSpots[i]];
+            boardState[possibleSpots[i]] = player;
+
+            if (player === playerX) {
+                let result = getBestMove(boardState, playerO);
+                move.score = result.score;
+            }
+            else {
+                let result = getBestMove(boardState, playerX);
+                move.score = result.score;
+            }
+
+            boardState[possibleSpots[i]] = move.index;
+
+            moves.push(move);
+        }
+
+        let bestMove;
+        if (player === playerX) {
+            let bestScore = -10000;
+            for (let i = 0; i < moves.length; i++) {
+                if(moves[i].score > bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        } else {
+            let bestScore = 10000;
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score < bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        }
+
+        return moves[bestMove];
+
+    }
+    return {
+        getPossibleSpots,
+        isWinner,
+        getBestMove
+    }
+
+})();
+
+
+// Medium difficulty algorithm
+
+const mediumAI = (function() {
+
+    const playerO = "O";
+    const playerX = "X";
+
+    let depthCounter = 0;
+
+    function resetDepthCounter() {
+        depthCounter = 0;
+    }
+
+    function getPossibleSpots(boardState) {
+        return boardState.filter(s => s != "O" && s != "X");
+    }
+
+    function isWinner(boardState, player) {
+        if (
+            (boardState[0] == player && boardState[1] == player && boardState[2] == player) ||
+            (boardState[3] == player && boardState[4] == player && boardState[5] == player) ||
+            (boardState[6] == player && boardState[7] == player && boardState[8] == player) ||
+            (boardState[0] == player && boardState[3] == player && boardState[6] == player) ||
+            (boardState[1] == player && boardState[4] == player && boardState[7] == player) ||
+            (boardState[2] == player && boardState[5] == player && boardState[8] == player) ||
+            (boardState[0] == player && boardState[4] == player && boardState[8] == player) ||
+            (boardState[2] == player && boardState[4] == player && boardState[6] == player)
+            ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+    function getBestMove(boardState, player) {
+        depthCounter++;
+
+        
+        for (let i = 0; i < boardState.length; i++) {
+            if (boardState[i] === "") {
+                boardState[i] = i;
+            }
+        }
+        let possibleSpots = getPossibleSpots(boardState);
+        
+        // Can increase depth counter limit to increase difficulty
+        if (depthCounter > 500) {
+            let randIndex = Math.floor(Math.random() * possibleSpots.length);
+            let randScoreIndex = Math.floor(Math.random() * 3);
+            let randScore;
+            if (randScoreIndex === 0) {
+                randScore = -10;
+            } else if (randScore === 1) {
+                randScore = 0;
+            } else {
+                randScore = 10;
+            }
+            return {index: possibleSpots[randIndex], score: randScore}
+        }
+        
+        
+        if (isWinner(boardState, playerO)) {
+            return {score: -10};
+        } else if (isWinner(boardState, playerX)) {
+            return {score: 10};
+        } else if (possibleSpots.length === 0) {
+            return {score: 0};
+        }
+
+        let moves = [];
+
+        for (let i = 0; i < possibleSpots.length; i++) {
     
-    if (winnerIsX) {
-        return 10;
-    } else if (winnerIsO) {
-        return -10;
-    } else {
-        return 0;
+            let move = {};
+            move.index = boardState[possibleSpots[i]];
+            boardState[possibleSpots[i]] = player;
+
+            if (player === playerX) {
+                let result = getBestMove(boardState, playerO);
+                move.score = result.score;
+            }
+            else {
+                let result = getBestMove(boardState, playerX);
+                move.score = result.score;
+            }
+
+            boardState[possibleSpots[i]] = move.index;
+
+            moves.push(move);
+        }
+
+        let bestMove;
+        if (player === playerX) {
+            let bestScore = -10000;
+            for (let i = 0; i < moves.length; i++) {
+                if(moves[i].score > bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        } else {
+            let bestScore = 10000;
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score < bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        }
+
+        return moves[bestMove];
+
     }
-}  
-
-const getPossibleMoves = function(squares) {
-    let possibleMovesMap = [];
-    for (let i = 0; i < squares.length; i++) {
-        if (squares[i] === "") {
-            possibleMovesMap.push(i);
-        } else continue;
+    return {
+        resetDepthCounter,
+        getPossibleSpots,
+        isWinner,
+        getBestMove
     }
-    return possibleMovesMap;
-}
 
-const getPossibleMoveScore = function(squares, moveIndex) {
-    let playerXturn = true; //adjust later
-    if (playerXturn) {
-        squares[moveIndex] = "X";
-        let score = getMinimaxScore(squares);
-        squares[moveIndex] = "";
-        return score;
-    } else {
-        squares[moveIndex] = "O";
-        let score = getMinimaxScore(squares);
-        squares[moveIndex] = "";
-        return score;
-    }
-}
-
-const populateScores = function(squares) {
-    let moves = getPossibleMoves(squares);
-    console.log(moves);
-    let scores = [];
-    for (let i = 0; i < moves.length; i++) {
-        let score = getPossibleMoveScore(squares, moves[i]);
-        scores.push(score);
-    }
-    return scores;
-}
+})();
 
 
-
-// Algorithm testing
-// let ex = ["X","","X","O","O","X","","",""];
-// console.log(getMinimaxScore(ex));
-// console.log(getPossibleMoves(ex));
-// console.log(getPossibleMoveScore(ex, 1));
-// console.log(ex);
-// console.log(populateScores(ex));
