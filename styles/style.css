@@ -7,6 +7,22 @@ body {
 h1 {
     color: black;
     text-align: center;
+    font-size: 48px;
+}
+
+button {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    border: solid black 2px;
+    border-radius: 5px;
+    background-color: rgb(145, 145, 145);
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: rgb(175, 175, 175);
 }
 
 .newGameDiv {
@@ -24,6 +40,7 @@ h1 {
     font-size: 1.5em;
     text-align: center;
     flex-grow: 1;
+    width: 200px;
     border: solid black 5px;
     border-radius: 5px;
     margin: 5px;
@@ -39,7 +56,7 @@ h1 {
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
     height: 600px;
-    width: 600px;
+    width: 900px;
     border: solid black 10px;
     border-radius: 10px;
 }
@@ -54,13 +71,14 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
+    user-select: none;
     
 }
 
 .gameSquare:hover {
     background-color: rgb(196, 196, 196);
 }
-
 
 #endGameOverlay {
     position: fixed;
@@ -82,4 +100,13 @@ h1 {
 
 #replayDiv {
     display: block;
+}
+
+#replayButton {
+    border: none;
+    background-color: transparent;
+}
+
+#replayButton:hover {
+    font-size: 28px;
 }

@@ -1,5 +1,6 @@
 
 // Game Board Module
+
 const gameBoard = (function() {
     let gameSquares = ["","","","","","","","",""];
     const setSquare = function(squareIndex, playerSymbol) {
@@ -31,7 +32,9 @@ const gameBoard = (function() {
     }
 })();
 
+
 // Display controller module. Updates display each move and checks for win.
+
 const displayController = (function() {
     const endGameOverlay = document.querySelector('#endGameOverlay');
     const gameOutcome = document.querySelector('#gameOutcome');
@@ -69,7 +72,6 @@ const displayController = (function() {
             }
             else continue;
         }
-
        
         let winConditions = [
             [0, 1, 2],
@@ -82,12 +84,9 @@ const displayController = (function() {
             [2, 4, 6]
         ];
         
-       // let winCondition = [0, 1, 2] // Example with a single win condition
        let winnerIsX = false;
        let winnerIsO = false;
-       
-
- 
+        
        for (let i = 0; i < winConditions.length; i++) {
             if (winnerIsX || winnerIsO) {
                 break;
@@ -145,7 +144,13 @@ const displayController = (function() {
     newGameButton.addEventListener('click', function() {
         gameOver = false;
         let player1Name = prompt('Player 1 name?', 'Player 1');
+        if (!player1Name) {
+            player1Name = 'Player 1';
+        }
         let player2Name = prompt('Player 2 name?', 'Player 2');
+        if (!player2Name) {
+            player2Name = 'Player 2';
+        }
         player1 = createPlayer(player1Name);
         player2 = createPlayer(player2Name);
         player1NameDiv.textContent = `${player1.getName()}:`;
@@ -165,6 +170,9 @@ const displayController = (function() {
     newAIGameButton.addEventListener('click', function() {
         gameOver = false;
         let player1Name = prompt('Player 1 name?', 'Player 1');
+        if (!player1Name) {
+            player1Name = 'Player 1';
+        }
         let player2Name = 'Computer';
         difficultyLevel = prompt('Enter difficulty (1 = easy, 2 = medium, 3 = impossible!)', 1);
         if (difficultyLevel !== '1' && difficultyLevel !== '2' && difficultyLevel !== '3') {
@@ -196,6 +204,10 @@ const displayController = (function() {
 
     gameSquareDivs.forEach(function(e) {
         e.addEventListener('click', function() {
+            if (gameBoard.getSquare(e.id) !== "") {
+                return;
+            }
+            
             if (playerXturn) {
                 gameBoard.setSquare(e.id,"X");
                 playerXturn = false;
@@ -269,6 +281,7 @@ const displayController = (function() {
 
 
 // Factory function to create players
+
 const createPlayer = function(name) {
     let numWins = 0; // declaring with "let" is important to link numWins to each instance
 
@@ -285,7 +298,8 @@ const createPlayer = function(name) {
     }
 }
 
-// Minimax algorithm for AI
+
+// Minimax algorithm for unbeatable AI
 
 const impossibleAI = (function() {
 
@@ -312,7 +326,6 @@ const impossibleAI = (function() {
             return false;
         }
     }
-
 
     const getBestMove = function(boardState, player) {
 
@@ -379,7 +392,7 @@ const impossibleAI = (function() {
 })();
 
 
-// Medium difficulty algorithm
+// Medium difficulty algorithm. Added a counter that triggers some randomness.
 
 const mediumAI = (function() {
 
@@ -413,7 +426,6 @@ const mediumAI = (function() {
         }
     }
 
-
     function getBestMove(boardState, player) {
         depthCounter++;
 
@@ -426,7 +438,7 @@ const mediumAI = (function() {
         let possibleSpots = getPossibleSpots(boardState);
         
         // Can increase depth counter limit to increase difficulty
-        if (depthCounter > 500) {
+        if (depthCounter > 1000) {
             let randIndex = Math.floor(Math.random() * possibleSpots.length);
             let randScoreIndex = Math.floor(Math.random() * 3);
             let randScore;
@@ -501,5 +513,4 @@ const mediumAI = (function() {
     }
 
 })();
-
 
